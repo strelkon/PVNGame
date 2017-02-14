@@ -5,13 +5,13 @@ package com.pvn;
  */
 public class Player {
     private int[] priorities;
-    private int strategy;
+    private Strategy strategy;
     private int timeFrame;
     public String id;
 
-    Player(String id){
-        this.strategy = 0;
-        this.priorities = new int[]{0, 0, 0, 0, 0, 1, 0};
+    public Player(String id){
+        this.strategy = new Strategy();
+        this.priorities = new int[]{0, 0, 0, 0, 0, 0, 0};
         this.timeFrame = 5;
         this.id = id;
     }
@@ -38,11 +38,11 @@ public class Player {
         return priorities;
     }
 
-    public void setStrategy(int s){
+    public void setStrategy(Strategy s){
         strategy = s;
     }
 
-    public int getStrategy(){
+    public Strategy getStrategy(){
         return strategy;
     }
 

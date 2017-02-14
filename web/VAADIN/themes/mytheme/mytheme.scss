@@ -1,0 +1,12 @@
+// Import valo after setting the parameters
+@import "../valo/_valo.scss";
+.mytheme {
+  @include valo;
+  // Your theme's rules go here
+  .v-vertical > .v-spacing {
+    height: 50px;
+  }
+  .v-horizontal > .v-spacing {
+    width: 50px;
+  }
+}

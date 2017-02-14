@@ -1,7 +1,9 @@
 package com.pvn;
 
+import com.vaadin.annotations.Theme;
 import com.vaadin.client.metadata.*;
 import com.vaadin.data.Property;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
@@ -18,23 +20,28 @@ import java.util.concurrent.Executors;
 /**
  * Created by strelkon on 2/9/2017.
  */
+@Theme("mytheme")
 public class game extends UI {
     private final ConcurrentHashMap <Integer, Player> players = new ConcurrentHashMap <Integer, Player>();
+    private final ConcurrentHashMap <Integer, Tree> trees = new ConcurrentHashMap <Integer, Tree>();
+    private final ConcurrentHashMap <Integer, Label> labels = new ConcurrentHashMap <Integer, Label>();
     private int decisionsMade;
+    private final String[][] strategies = new String[][]{new String[]{"A","A1","A2"},new String[]{"B","B1","B2"}};
     @Override
     public void init(VaadinRequest request) {
         for (int i=0; i<4; i++){
             Player player = new Player(Integer.toString(i));
             players.put(i, player);
         }
-        HorizontalLayout root = new HorizontalLayout();
-        VerticalLayout layout = new VerticalLayout();
+        initStrategies();
+
+        VerticalLayout root = new VerticalLayout();
         //setContent(layout);
         setContent(root);
-        layout.addComponent(new Label("Hello, world!"));
         //
         for (Player player: players.values()) {
             //layout.addComponent(new TextArea("Log"));
+            HorizontalLayout layout = new HorizontalLayout();
             Table table = new Table("Player "+player.id);
 
             // Define two columns for the built-in container
@@ -167,7 +174,51 @@ public class game extends UI {
 
             // Show exactly the currently contained rows (items)
             table.setPageLength(table.size());
+            setContent(layout);
             layout.addComponent(table);
+
+            //Strategy Tree
+            Tree tree = new Tree("Strategies");
+            for (int i=0; i<strategies.length; i++) {
+                String strategy = (String) (strategies[i][0]);
+                tree.addItem(strategy);
+                if (strategies[i].length == 1) {
+                    tree.setChildrenAllowed(strategy, false);
+                }
+                else {
+                    // Add children.
+                    for (int j=1; j<strategies[i].length; j++) {
+                        String subStrategy = (String) strategies[i][j];
+                        // Add the item as a regular item.
+                        tree.addItem(subStrategy);
+                        // Set it to be a child.
+                        tree.setParent(subStrategy, strategy);
+                        tree.setChildrenAllowed(subStrategy, false);
+                    }
+                }
+                // Expand the subtree.
+                //tree.expandItemsRecursively(strategy);
+            }
+            trees.put(player.hashCode(),tree);
+            tree.setId(player.id);
+            tree.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+                @Override
+                public void itemClick(ItemClickEvent itemClickEvent) {
+                    labels.get(player.hashCode()).setValue("A1");
+                }
+            });
+            tree.setImmediate(true);
+
+            //
+            layout.setSpacing(true);
+            layout.addComponent(tree);
+            tree.setVisible(false);
+
+            //
+            Label label = new Label("labe");
+            labels.put(player.hashCode(),label);
+            label.setId(player.id);
+            layout.addComponent(label);
 
             Button b3 = new Button("Make decision");
             b3.addClickListener(new Button.ClickListener() {
@@ -176,11 +227,32 @@ public class game extends UI {
                     decisionsMade++;
                     b3.setEnabled(false);
                     System.out.println("Players have moved="+decisionsMade);
+                    if (decisionsMade == players.size()){
+                        for (Tree tr:trees.values()){
+                            tr.setVisible(true);
+                        }
+                    }
                 }
             });
-            layout.addComponent(b3);
+            setContent(root);
+            root.addComponent(layout);
+            root.addComponent(b3);
+            root.setSpacing(true);
         }
-        root.addComponent(layout);
-        root.addComponent(new Label("labe"));
     }
+
+    private void initStrategies (){
+        Strategy s1 = new Strategy("A");
+        Strategy s2 = new Strategy("A1");
+        Strategy s3 = new Strategy("A1");
+        Strategy s4 = new Strategy("B");
+        Strategy s5 = new Strategy("B1");
+        Strategy s6 = new Strategy("B2");
+        s1.setShortDescription("");
+    }
+
+    private void showStrategies(Tree tree){
+        tree.setVisible(true);
+    }
+
 }
